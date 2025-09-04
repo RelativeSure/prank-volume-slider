@@ -311,52 +311,78 @@
         });
 
         // Touch swipe gestures for prank behavior
+        let touchStartTime = 0;
+        
         volumeControl.addEventListener('touchstart', (e) => {
             if (e.target === thumb) return; // Skip if touching the thumb
             touchStartX = e.touches[0].clientX;
             touchStartY = e.touches[0].clientY;
-        });
+            touchStartTime = Date.now();
+        }, { passive: false });
 
         volumeControl.addEventListener('touchmove', (e) => {
             if (isDragging || e.target === thumb) return;
             
-            e.preventDefault();
             const touchX = e.touches[0].clientX;
             const touchY = e.touches[0].clientY;
             const deltaX = touchX - touchStartX;
             const deltaY = touchY - touchStartY;
+            const timeDelta = Date.now() - touchStartTime;
             
-            // Detect swipe direction
-            if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > 20) {
-                // Vertical swipe
-                if (deltaY < 0) {
-                    // Swipe up - behaves like scroll up
-                    handleVerticalGesture(true);
-                } else {
-                    // Swipe down - behaves like scroll down
-                    handleVerticalGesture(false);
+            // Only process if it's been a short time (quick gesture)
+            if (timeDelta < 1000) {
+                e.preventDefault(); // Prevent page scrolling
+                
+                // Detect swipe direction with lower threshold for better sensitivity
+                if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > 15) {
+                    // Vertical swipe
+                    if (deltaY < 0) {
+                        // Swipe up - behaves like scroll up
+                        handleVerticalGesture(true);
+                    } else {
+                        // Swipe down - behaves like scroll down
+                        handleVerticalGesture(false);
+                    }
+                } else if (Math.abs(deltaX) > 15) {
+                    // Horizontal swipe - prank behavior
+                    if (deltaX > 0) {
+                        volume += 3 + Math.random() * 4; // Chaotic movement
+                    } else {
+                        volume -= 3 + Math.random() * 4;
+                    }
+                    showPrankIndicator();
                 }
-            } else if (Math.abs(deltaX) > 20) {
-                // Horizontal swipe - prank behavior
-                if (deltaX > 0) {
-                    volume += 3 + Math.random() * 4; // Chaotic movement
-                } else {
-                    volume -= 3 + Math.random() * 4;
-                }
-                showPrankIndicator();
+                
+                volume = Math.max(0, Math.min(100, volume));
+                updateSlider();
+                
+                // Reset touch start for continuous gestures
+                touchStartX = touchX;
+                touchStartY = touchY;
+                touchStartTime = Date.now();
             }
+        }, { passive: false });
+
+        // Also add direct touch controls on the container for easier mobile interaction
+        volumeControl.addEventListener('touchend', (e) => {
+            if (isDragging || e.target === thumb) return;
             
-            volume = Math.max(0, Math.min(100, volume));
-            updateSlider();
+            const timeDelta = Date.now() - touchStartTime;
+            const deltaY = e.changedTouches[0].clientY - touchStartY;
             
-            // Reset touch start for continuous gestures
-            touchStartX = touchX;
-            touchStartY = touchY;
+            // If it was a quick tap or very short swipe, treat as volume adjustment
+            if (timeDelta < 200 || Math.abs(deltaY) < 10) {
+                const rect = volumeControl.getBoundingClientRect();
+                const x = e.changedTouches[0].clientX - rect.left;
+                const percentage = (x / rect.width) * 100;
+                volume = Math.max(0, Math.min(100, percentage));
+                updateSlider();
+            }
         });
 
         function handleVerticalGesture(isUp) {
             if (isUp && !prankTriggered) {
-                volume += 4;
+                volume += 8; // Increase step size for mobile
                 scrollDirection = 1;
                 
                 if (volume > 75 && !prankCooldown) {
@@ -369,10 +395,10 @@
                     }, 3000);
                 }
             } else if (isUp && prankTriggered) {
-                volume -= 6;
+                volume -= 10; // Bigger reverse effect for mobile
                 scrollDirection = -1;
             } else if (!isUp) {
-                volume -= 4;
+                volume -= 8;
                 scrollDirection = -1;
                 
                 if (volume < 30) {
