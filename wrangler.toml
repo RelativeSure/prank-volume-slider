@@ -1,0 +1,7 @@
+name = "prank-volume-slider"
+main = "src/index.js"
+compatibility_date = "2025-09-04"
+
+[site]
+bucket = "./"
+entry-point = "index.html"
