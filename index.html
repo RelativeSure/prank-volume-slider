@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Volume Control</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Arial', sans-serif;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            text-align: center;
+            min-width: 400px;
+        }
+
+        h1 {
+            color: white;
+            margin-bottom: 30px;
+            font-weight: 300;
+            font-size: 2em;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .volume-control {
+            position: relative;
+            width: 300px;
+            height: 60px;
+            margin: 0 auto;
+        }
+
+        .slider-track {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            transform: translateY(-50%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .slider-fill {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+            border-radius: 4px;
+            width: 50%;
+            transition: width 0.1s ease;
+            box-shadow: 0 2px 8px rgba(79, 172, 254, 0.4);
+        }
+
+        .slider-thumb {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: left 0.1s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+        }
+
+        .volume-percentage {
+            color: white;
+            font-size: 1.5em;
+            margin-top: 20px;
+            font-weight: bold;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .instructions {
+            color: rgba(255, 255, 255, 0.8);
+            margin-top: 20px;
+            font-size: 0.9em;
+        }
+
+        .prank-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.8em;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .prank-indicator.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Volume Control</h1>
+        <div class="volume-control">
+            <div class="slider-track">
+                <div class="slider-fill" id="sliderFill"></div>
+            </div>
+            <div class="slider-thumb" id="sliderThumb"></div>
+        </div>
+        <div class="volume-percentage" id="volumePercentage">50%</div>
+        <div class="instructions">
+            Use your mouse wheel to adjust the volume
+        </div>
+    </div>
+
+    <div class="prank-indicator" id="prankIndicator">
+        😈 Prank mode activated!
+    </div>
+
+    <script>
+        let volume = 50;
+        let scrollDirection = 1;
+        let prankTriggered = false;
+        let prankCooldown = false;
+
+        const sliderFill = document.getElementById('sliderFill');
+        const sliderThumb = document.getElementById('sliderThumb');
+        const volumePercentage = document.getElementById('volumePercentage');
+        const prankIndicator = document.getElementById('prankIndicator');
+
+        function updateSlider() {
+            const percentage = Math.max(0, Math.min(100, volume));
+            sliderFill.style.width = percentage + '%';
+            sliderThumb.style.left = percentage + '%';
+            volumePercentage.textContent = Math.round(percentage) + '%';
+        }
+
+        function showPrankIndicator() {
+            prankIndicator.classList.add('show');
+            setTimeout(() => {
+                prankIndicator.classList.remove('show');
+            }, 2000);
+        }
+
+        // Handle wheel events (scroll)
+        document.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            
+            const scrollUp = e.deltaY < 0;
+            const scrollDown = e.deltaY > 0;
+            const scrollLeft = e.deltaX < 0;
+            const scrollRight = e.deltaX > 0;
+            
+            // Handle vertical scrolling (up/down)
+            if (scrollUp || scrollDown) {
+                // Normal behavior: scroll up increases volume (goes right)
+                if (scrollUp && !prankTriggered) {
+                    volume += 3;
+                    scrollDirection = 1;
+                    
+                    // Trigger prank when volume gets high
+                    if (volume > 75 && !prankCooldown) {
+                        prankTriggered = true;
+                        prankCooldown = true;
+                        showPrankIndicator();
+                        
+                        // Reset cooldown after 3 seconds
+                        setTimeout(() => {
+                            prankCooldown = false;
+                        }, 3000);
+                    }
+                } 
+                // Prank mode: scroll up decreases volume (goes left)
+                else if (scrollUp && prankTriggered) {
+                    volume -= 5;
+                    scrollDirection = -1;
+                } 
+                // Scroll down decreases volume
+                else if (scrollDown) {
+                    volume -= 3;
+                    scrollDirection = -1;
+                    
+                    // Reset prank when volume gets low
+                    if (volume < 30) {
+                        prankTriggered = false;
+                    }
+                }
+            }
+            
+            // Handle horizontal scrolling (left/right)
+            if (scrollLeft || scrollRight) {
+                // Horizontal scrolling also affects vertical movement (more prank behavior)
+                if (scrollRight) {
+                    volume += 2;
+                    // Add some chaotic up/down movement
+                    volume += Math.random() > 0.5 ? 2 : -2;
+                } else if (scrollLeft) {
+                    volume -= 2;
+                    // Add some chaotic up/down movement  
+                    volume += Math.random() > 0.5 ? 2 : -2;
+                }
+                
+                showPrankIndicator();
+            }
+            
+            // Clamp volume between 0 and 100
+            volume = Math.max(0, Math.min(100, volume));
+            updateSlider();
+        });
+
+        // Handle click on slider
+        document.querySelector('.volume-control').addEventListener('click', (e) => {
+            const rect = e.currentTarget.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const percentage = (x / rect.width) * 100;
+            volume = Math.max(0, Math.min(100, percentage));
+            updateSlider();
+        });
+
+        // Initialize
+        updateSlider();
+    </script>
+</body>
+</html>
