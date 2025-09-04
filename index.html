@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Volume Control</title>
+    <title>Interactive UI Demos</title>
     <style>
         * {
             margin: 0;
@@ -13,44 +13,93 @@
 
         body {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            font-family: 'Arial', sans-serif;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-            margin: 0;
-            padding: 10px;
-            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: hidden;
         }
 
-        .container {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 30px 20px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+        .header {
             text-align: center;
-            width: 100%;
-            max-width: 400px;
-            min-width: 280px;
+            margin-bottom: 30px;
         }
 
-        h1 {
+        .header h1 {
             color: white;
-            margin-bottom: 25px;
-            font-weight: 300;
-            font-size: clamp(1.5em, 4vw, 2em);
+            font-size: clamp(1.8em, 4vw, 2.5em);
+            margin-bottom: 10px;
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
 
+        .header p {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: clamp(0.9em, 2.5vw, 1.1em);
+        }
+
+        .demo-selector {
+            max-width: 400px;
+            margin: 0 auto 30px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .demo-selector select {
+            width: 100%;
+            padding: 15px;
+            font-size: 16px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 12px center;
+            background-repeat: no-repeat;
+            background-size: 16px;
+        }
+
+        .demo-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            min-height: 400px;
+        }
+
+        .demo {
+            display: none;
+            text-align: center;
+            color: white;
+        }
+
+        .demo.active {
+            display: block;
+        }
+
+        .demo h2 {
+            margin-bottom: 20px;
+            font-size: clamp(1.4em, 3vw, 1.8em);
+        }
+
+        .demo p {
+            margin-bottom: 30px;
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.6;
+        }
+
+        /* Volume Slider Styles */
         .volume-control {
             position: relative;
             width: 100%;
             max-width: 300px;
             height: 60px;
-            margin: 0 auto;
+            margin: 20px auto;
             touch-action: manipulation;
         }
 
@@ -94,15 +143,6 @@
             touch-action: manipulation;
         }
 
-        .slider-thumb:hover {
-            transform: translate(-50%, -50%) scale(1.1);
-        }
-
-        .slider-thumb:active {
-            transform: translate(-50%, -50%) scale(1.2);
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
-        }
-
         .volume-percentage {
             color: white;
             font-size: clamp(1.2em, 3vw, 1.5em);
@@ -111,304 +151,852 @@
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
 
-        .instructions {
-            color: rgba(255, 255, 255, 0.8);
-            margin-top: 20px;
-            font-size: clamp(0.8em, 2.5vw, 0.9em);
-            line-height: 1.4;
+        /* Button Styles */
+        .prank-button {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            color: white;
+            border-radius: 10px;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            position: relative;
         }
 
-        .mobile-instructions {
-            display: none;
+        .prank-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
         }
 
+        .dodge-button {
+            transition: all 0.2s ease;
+        }
+
+        /* Loading Animation */
+        .progress-container {
+            width: 100%;
+            max-width: 400px;
+            margin: 20px auto;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+            width: 0%;
+            transition: width 0.1s ease;
+        }
+
+        .loading-text {
+            text-align: center;
+            margin-top: 10px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        /* Calculator */
+        .calculator {
+            max-width: 300px;
+            margin: 0 auto;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+        }
+
+        .calc-display {
+            width: 100%;
+            height: 60px;
+            background: rgba(0, 0, 0, 0.5);
+            border: none;
+            color: white;
+            font-size: 24px;
+            text-align: right;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+        }
+
+        .calc-buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        .calc-button {
+            aspect-ratio: 1;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            font-size: 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .calc-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .calc-button.operator {
+            background: rgba(255, 165, 0, 0.7);
+        }
+
+        /* Text Input */
+        .text-demo {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .delayed-input {
+            width: 100%;
+            padding: 15px;
+            font-size: 16px;
+            border: none;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .delayed-output {
+            width: 100%;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: white;
+            min-height: 60px;
+            font-family: monospace;
+        }
+
+        /* Gravity Elements */
+        .gravity-element {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            border-radius: 10px;
+            transition: all 2s ease-in-out;
+            cursor: pointer;
+        }
+
+        /* Crack Effect */
+        .crack {
+            position: absolute;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .crack::before {
+            content: '';
+            position: absolute;
+            width: 2px;
+            height: 100px;
+            background: linear-gradient(45deg, transparent, rgba(0,0,0,0.8), transparent);
+            transform: rotate(var(--angle, 0deg));
+        }
+
+        /* Mirror Effect */
+        .mirrored {
+            transform: scaleX(-1);
+        }
+
+        /* Slow Motion */
+        .slow-motion * {
+            transition-duration: 2s !important;
+            animation-duration: 4s !important;
+        }
+
+        /* Mood Ring Colors */
+        .mood-happy { background: linear-gradient(135deg, #ffeb3b, #ff9800); }
+        .mood-calm { background: linear-gradient(135deg, #2196f3, #00bcd4); }
+        .mood-excited { background: linear-gradient(135deg, #e91e63, #9c27b0); }
+        .mood-focused { background: linear-gradient(135deg, #4caf50, #8bc34a); }
+        .mood-mysterious { background: linear-gradient(135deg, #673ab7, #3f51b5); }
+
+        /* Mobile Responsiveness */
         @media (max-width: 768px) {
-            .desktop-instructions {
-                display: none;
+            .demo-container {
+                padding: 20px;
+                margin: 10px;
             }
-            .mobile-instructions {
-                display: block;
+            
+            .calc-buttons {
+                gap: 8px;
+            }
+            
+            .prank-button {
+                padding: 12px 20px;
+                font-size: 16px;
             }
         }
-
-
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Volume Control</h1>
-        <div class="volume-control">
-            <div class="slider-track">
-                <div class="slider-fill" id="sliderFill"></div>
+    <div class="header">
+        <h1>Interactive UI Collection</h1>
+        <p>Professional user interface demonstrations and testing tools</p>
+    </div>
+
+    <div class="demo-selector">
+        <select id="demoSelect">
+            <option value="volume">Audio Control Interface</option>
+            <option value="buttons">Button Response Testing</option>
+            <option value="loading">Progress Loading System</option>
+            <option value="calculator">Mathematical Calculator</option>
+            <option value="typing">Text Input Processor</option>
+            <option value="cursor">Cursor Tracking Demo</option>
+            <option value="gravity">Physics Simulation</option>
+            <option value="mirror">Reflection Display Mode</option>
+            <option value="motion">Animation Speed Control</option>
+            <option value="mood">Ambient Color Detector</option>
+            <option value="crack">Screen Interaction Test</option>
+            <option value="time">Temporal Display Widget</option>
+        </select>
+    </div>
+
+    <div class="demo-container">
+        <!-- Volume Control Demo -->
+        <div class="demo active" data-demo="volume">
+            <h2>Audio Control Interface</h2>
+            <p>Professional volume control with advanced gesture recognition</p>
+            <div class="volume-control">
+                <div class="slider-track">
+                    <div class="slider-fill" id="sliderFill"></div>
+                </div>
+                <div class="slider-thumb" id="sliderThumb"></div>
             </div>
-            <div class="slider-thumb" id="sliderThumb"></div>
+            <div class="volume-percentage" id="volumePercentage">50%</div>
+            <p style="font-size: 0.9em; margin-top: 20px;">Use scroll wheel or touch gestures to adjust</p>
         </div>
-        <div class="volume-percentage" id="volumePercentage">50%</div>
-        <div class="instructions">
-            <span class="desktop-instructions">Use your mouse wheel to adjust the volume</span>
-            <span class="mobile-instructions">Tap the slider or use touch gestures to adjust volume</span>
+
+        <!-- Button Testing Demo -->
+        <div class="demo" data-demo="buttons">
+            <h2>Button Response Testing</h2>
+            <p>Advanced user interaction validation system</p>
+            <button class="prank-button dodge-button" onclick="dodgeButton(this)">Click Me</button>
+            <button class="prank-button dodge-button" onclick="dodgeButton(this)">Submit</button>
+            <button class="prank-button dodge-button" onclick="dodgeButton(this)">Confirm</button>
+            <div id="buttonMessage" style="margin-top: 20px; color: rgba(255,255,255,0.8);">
+                Try clicking the buttons above
+            </div>
+        </div>
+
+        <!-- Loading Demo -->
+        <div class="demo" data-demo="loading">
+            <h2>Progress Loading System</h2>
+            <p>High-performance asynchronous data processing</p>
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="loading-text" id="loadingText">Ready to start loading...</div>
+            </div>
+            <button class="prank-button" onclick="startLoading()">Begin Process</button>
+        </div>
+
+        <!-- Calculator Demo -->
+        <div class="demo" data-demo="calculator">
+            <h2>Mathematical Calculator</h2>
+            <p>Precision computational interface with advanced algorithms</p>
+            <div class="calculator">
+                <input type="text" class="calc-display" id="calcDisplay" readonly>
+                <div class="calc-buttons">
+                    <button class="calc-button" onclick="clearCalc()">C</button>
+                    <button class="calc-button" onclick="calcInput('/')" class="operator">÷</button>
+                    <button class="calc-button" onclick="calcInput('*')" class="operator">×</button>
+                    <button class="calc-button" onclick="deleteLast()">⌫</button>
+                    
+                    <button class="calc-button" onclick="calcInput('7')">7</button>
+                    <button class="calc-button" onclick="calcInput('8')">8</button>
+                    <button class="calc-button" onclick="calcInput('9')">9</button>
+                    <button class="calc-button" onclick="calcInput('-')" class="operator">-</button>
+                    
+                    <button class="calc-button" onclick="calcInput('4')">4</button>
+                    <button class="calc-button" onclick="calcInput('5')">5</button>
+                    <button class="calc-button" onclick="calcInput('6')">6</button>
+                    <button class="calc-button" onclick="calcInput('+')" class="operator">+</button>
+                    
+                    <button class="calc-button" onclick="calcInput('1')">1</button>
+                    <button class="calc-button" onclick="calcInput('2')">2</button>
+                    <button class="calc-button" onclick="calcInput('3')">3</button>
+                    <button class="calc-button" onclick="calculate()" rowspan="2" class="operator">=</button>
+                    
+                    <button class="calc-button" onclick="calcInput('0')" colspan="2" style="grid-column: span 2;">0</button>
+                    <button class="calc-button" onclick="calcInput('.')">.</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Typing Demo -->
+        <div class="demo" data-demo="typing">
+            <h2>Text Input Processor</h2>
+            <p>Advanced natural language processing with real-time analysis</p>
+            <div class="text-demo">
+                <input type="text" class="delayed-input" id="textInput" placeholder="Type something here...">
+                <div class="delayed-output" id="textOutput">Your processed text will appear here...</div>
+            </div>
+        </div>
+
+        <!-- Cursor Demo -->
+        <div class="demo" data-demo="cursor">
+            <h2>Cursor Tracking Demo</h2>
+            <p>Advanced pointer detection and movement analysis</p>
+            <div id="fakeCursor" style="position: fixed; width: 20px; height: 20px; background: red; border-radius: 50%; z-index: 9999; display: none; pointer-events: none;"></div>
+            <p>Move your cursor around this area to see the tracking system in action!</p>
+            <div style="height: 200px; border: 2px dashed rgba(255,255,255,0.3); border-radius: 10px; margin: 20px 0; position: relative;">
+                <p style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0.5;">Cursor Tracking Zone</p>
+            </div>
+        </div>
+
+        <!-- Gravity Demo -->
+        <div class="demo" data-demo="gravity">
+            <h2>Physics Simulation</h2>
+            <p>Real-time gravitational force calculation and object dynamics</p>
+            <button class="prank-button" onclick="createGravityElements()">Generate Objects</button>
+            <button class="prank-button" onclick="activateGravity()">Activate Physics</button>
+            <div id="gravityContainer" style="position: relative; height: 300px; overflow: hidden; border: 2px dashed rgba(255,255,255,0.3); border-radius: 10px; margin-top: 20px;"></div>
+        </div>
+
+        <!-- Mirror Demo -->
+        <div class="demo" data-demo="mirror">
+            <h2>Reflection Display Mode</h2>
+            <p>Advanced visual rendering with horizontal axis transformation</p>
+            <button class="prank-button" onclick="toggleMirror()">Toggle Mirror Effect</button>
+            <div id="mirrorContent" style="margin-top: 20px;">
+                <p>This text will be mirrored</p>
+                <button class="prank-button">Sample Button</button>
+            </div>
+        </div>
+
+        <!-- Motion Demo -->
+        <div class="demo" data-demo="motion">
+            <h2>Animation Speed Control</h2>
+            <p>Temporal animation frequency modulation system</p>
+            <button class="prank-button" onclick="toggleSlowMotion()">Activate Precision Mode</button>
+            <div style="margin-top: 20px;">
+                <div style="width: 50px; height: 50px; background: linear-gradient(45deg, #ff6b6b, #4ecdc4); border-radius: 50%; margin: 20px auto; animation: bounce 1s infinite alternate;"></div>
+            </div>
+        </div>
+
+        <!-- Mood Demo -->
+        <div class="demo" data-demo="mood">
+            <h2>Ambient Color Detector</h2>
+            <p>Advanced biometric mood analysis through environmental color psychology</p>
+            <button class="prank-button" onclick="detectMood()">Analyze Current Mood</button>
+            <div id="moodResult" style="margin-top: 20px; color: rgba(255,255,255,0.8);">
+                Click the button to begin mood analysis
+            </div>
+        </div>
+
+        <!-- Crack Demo -->
+        <div class="demo" data-demo="crack">
+            <h2>Screen Interaction Test</h2>
+            <p>Surface integrity monitoring and stress point analysis</p>
+            <p>Touch or click anywhere on this area to test surface response</p>
+            <div id="crackArea" style="height: 300px; border: 2px solid rgba(255,255,255,0.3); border-radius: 10px; position: relative; cursor: pointer; background: rgba(0,0,0,0.1);">
+                <p style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0.5; pointer-events: none;">Interaction Testing Zone</p>
+            </div>
+        </div>
+
+        <!-- Time Demo -->
+        <div class="demo" data-demo="time">
+            <h2>Temporal Display Widget</h2>
+            <p>Advanced chronological calculation with multi-dimensional time zones</p>
+            <div id="timeDisplay" style="font-size: 2em; margin: 20px 0; font-family: monospace;"></div>
+            <div id="timeZone" style="color: rgba(255,255,255,0.8);"></div>
         </div>
     </div>
 
-
+    <style>
+        @keyframes bounce {
+            from { transform: translateY(0px); }
+            to { transform: translateY(-20px); }
+        }
+    </style>
 
     <script>
+        // Global variables for different demos
+        let currentDemo = 'volume';
         let volume = 50;
-        let scrollDirection = 1;
         let prankTriggered = false;
         let prankCooldown = false;
         let isDragging = false;
-        let touchStartX = 0;
-        let touchStartY = 0;
-        let initialVolume = 50;
+        let fakeCursorActive = false;
+        let gravityActive = false;
+        let isMirrored = false;
+        let isSlowMotion = false;
+        let calcExpression = '';
+        let loadingActive = false;
+        let typingQueue = [];
+        let typingInterval = null;
+        let fakeCursorTimeout;
 
-        const sliderFill = document.getElementById('sliderFill');
-        const sliderThumb = document.getElementById('sliderThumb');
-        const volumePercentage = document.getElementById('volumePercentage');
-        const prankIndicator = null;
+        // Demo switching
+        document.getElementById('demoSelect').addEventListener('change', function() {
+            switchDemo(this.value);
+        });
 
-        function updateSlider() {
-            const percentage = Math.max(0, Math.min(100, volume));
-            sliderFill.style.width = percentage + '%';
-            sliderThumb.style.left = percentage + '%';
-            volumePercentage.textContent = Math.round(percentage) + '%';
+        function switchDemo(demoName) {
+            // Hide all demos
+            document.querySelectorAll('.demo').forEach(demo => {
+                demo.classList.remove('active');
+            });
+            
+            // Show selected demo
+            document.querySelector(`[data-demo="${demoName}"]`).classList.add('active');
+            currentDemo = demoName;
+            
+            // Initialize demo-specific functionality
+            initializeDemo(demoName);
         }
 
-        function showPrankIndicator() {
-            // Removed - no visual indication of prank mode
+        function initializeDemo(demoName) {
+            // Clean up previous demos
+            cleanupDemos();
+            
+            switch(demoName) {
+                case 'volume':
+                    initVolumeDemo();
+                    break;
+                case 'buttons':
+                    initButtonDemo();
+                    break;
+                case 'cursor':
+                    initCursorDemo();
+                    break;
+                case 'gravity':
+                    initGravityDemo();
+                    break;
+                case 'typing':
+                    initTypingDemo();
+                    break;
+                case 'time':
+                    initTimeDemo();
+                    break;
+            }
         }
 
-        // Handle wheel events (scroll)
-        document.addEventListener('wheel', (e) => {
+        function cleanupDemos() {
+            // Remove event listeners and reset states
+            fakeCursorActive = false;
+            loadingActive = false;
+            document.getElementById('fakeCursor').style.display = 'none';
+            document.body.classList.remove('slow-motion');
+            if (typingInterval) {
+                clearInterval(typingInterval);
+                typingInterval = null;
+            }
+            if (window.timeInterval) {
+                clearInterval(window.timeInterval);
+                window.timeInterval = null;
+            }
+            typingQueue = [];
+            
+            // Reset typing demo
+            const textOutput = document.getElementById('textOutput');
+            if (textOutput) {
+                textOutput.textContent = 'Your processed text will appear here...';
+            }
+        }
+
+        // Volume Control Demo
+        function initVolumeDemo() {
+            updateSlider();
+            
+            // Mouse wheel events
+            const volumeContainer = document.querySelector('.volume-control');
+            volumeContainer.addEventListener('wheel', handleVolumeWheel, { passive: false });
+            
+            // Touch events for mobile
+            let touchStartX = 0, touchStartY = 0, touchStartTime = 0;
+            
+            volumeContainer.addEventListener('touchstart', (e) => {
+                if (e.target.id === 'sliderThumb') return;
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+                touchStartTime = Date.now();
+            }, { passive: false });
+
+            volumeContainer.addEventListener('touchmove', (e) => {
+                if (isDragging) return;
+                
+                const touchX = e.touches[0].clientX;
+                const touchY = e.touches[0].clientY;
+                const deltaX = touchX - touchStartX;
+                const deltaY = touchY - touchStartY;
+                const timeDelta = Date.now() - touchStartTime;
+                
+                if (timeDelta < 1000) {
+                    e.preventDefault();
+                    
+                    if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > 15) {
+                        if (deltaY < 0) {
+                            handleVerticalGesture(true);
+                        } else {
+                            handleVerticalGesture(false);
+                        }
+                    } else if (Math.abs(deltaX) > 15) {
+                        if (deltaX > 0) {
+                            volume += 3 + Math.random() * 4;
+                        } else {
+                            volume -= 3 + Math.random() * 4;
+                        }
+                    }
+                    
+                    volume = Math.max(0, Math.min(100, volume));
+                    updateSlider();
+                    
+                    touchStartX = touchX;
+                    touchStartY = touchY;
+                    touchStartTime = Date.now();
+                }
+            }, { passive: false });
+
+            // Click to set volume
+            volumeContainer.addEventListener('click', (e) => {
+                if (isDragging) return;
+                const rect = e.currentTarget.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const percentage = (x / rect.width) * 100;
+                volume = Math.max(0, Math.min(100, percentage));
+                updateSlider();
+            });
+        }
+
+        function handleVolumeWheel(e) {
             e.preventDefault();
             
             const scrollUp = e.deltaY < 0;
             const scrollDown = e.deltaY > 0;
-            const scrollLeft = e.deltaX < 0;
-            const scrollRight = e.deltaX > 0;
             
-            // Handle vertical scrolling (up/down)
-            if (scrollUp || scrollDown) {
-                // Normal behavior: scroll up increases volume (goes right)
-                if (scrollUp && !prankTriggered) {
-                    volume += 3;
-                    scrollDirection = 1;
-                    
-                    // Trigger prank when volume gets high
-                    if (volume > 75 && !prankCooldown) {
-                        prankTriggered = true;
-                        prankCooldown = true;
-                        showPrankIndicator();
-                        
-                        // Reset cooldown after 3 seconds
-                        setTimeout(() => {
-                            prankCooldown = false;
-                        }, 3000);
-                    }
-                } 
-                // Prank mode: scroll up decreases volume (goes left)
-                else if (scrollUp && prankTriggered) {
-                    volume -= 5;
-                    scrollDirection = -1;
-                } 
-                // Scroll down decreases volume
-                else if (scrollDown) {
-                    volume -= 3;
-                    scrollDirection = -1;
-                    
-                    // Reset prank when volume gets low
-                    if (volume < 30) {
-                        prankTriggered = false;
-                    }
-                }
-            }
-            
-            // Handle horizontal scrolling (left/right)
-            if (scrollLeft || scrollRight) {
-                // Horizontal scrolling also affects vertical movement (more prank behavior)
-                if (scrollRight) {
-                    volume += 2;
-                    // Add some chaotic up/down movement
-                    volume += Math.random() > 0.5 ? 2 : -2;
-                } else if (scrollLeft) {
-                    volume -= 2;
-                    // Add some chaotic up/down movement  
-                    volume += Math.random() > 0.5 ? 2 : -2;
-                }
-                
-                showPrankIndicator();
-            }
-            
-            // Clamp volume between 0 and 100
-            volume = Math.max(0, Math.min(100, volume));
-            updateSlider();
-        });
-
-        // Handle click/tap on slider
-        document.querySelector('.volume-control').addEventListener('click', (e) => {
-            if (isDragging) return; // Don't handle click if we were dragging
-            
-            const rect = e.currentTarget.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const percentage = (x / rect.width) * 100;
-            volume = Math.max(0, Math.min(100, percentage));
-            updateSlider();
-        });
-
-        // Touch support for mobile
-        const thumb = document.getElementById('sliderThumb');
-        const volumeControl = document.querySelector('.volume-control');
-
-        // Touch events for dragging
-        thumb.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            isDragging = true;
-            touchStartX = e.touches[0].clientX;
-            initialVolume = volume;
-        });
-
-        document.addEventListener('touchmove', (e) => {
-            if (!isDragging) return;
-            e.preventDefault();
-            
-            const rect = volumeControl.getBoundingClientRect();
-            const touchX = e.touches[0].clientX;
-            const deltaX = touchX - touchStartX;
-            const deltaPercentage = (deltaX / rect.width) * 100;
-            
-            volume = Math.max(0, Math.min(100, initialVolume + deltaPercentage));
-            updateSlider();
-        });
-
-        document.addEventListener('touchend', () => {
-            if (isDragging) {
-                isDragging = false;
-            }
-        });
-
-        // Mouse events for dragging (desktop)
-        thumb.addEventListener('mousedown', (e) => {
-            isDragging = true;
-            const rect = volumeControl.getBoundingClientRect();
-            const startX = e.clientX;
-            const startVolume = volume;
-
-            function onMouseMove(moveEvent) {
-                const deltaX = moveEvent.clientX - startX;
-                const deltaPercentage = (deltaX / rect.width) * 100;
-                volume = Math.max(0, Math.min(100, startVolume + deltaPercentage));
-                updateSlider();
-            }
-
-            function onMouseUp() {
-                isDragging = false;
-                document.removeEventListener('mousemove', onMouseMove);
-                document.removeEventListener('mouseup', onMouseUp);
-            }
-
-            document.addEventListener('mousemove', onMouseMove);
-            document.addEventListener('mouseup', onMouseUp);
-        });
-
-        // Touch swipe gestures for prank behavior
-        let touchStartTime = 0;
-        
-        volumeControl.addEventListener('touchstart', (e) => {
-            if (e.target === thumb) return; // Skip if touching the thumb
-            touchStartX = e.touches[0].clientX;
-            touchStartY = e.touches[0].clientY;
-            touchStartTime = Date.now();
-        }, { passive: false });
-
-        volumeControl.addEventListener('touchmove', (e) => {
-            if (isDragging || e.target === thumb) return;
-            
-            const touchX = e.touches[0].clientX;
-            const touchY = e.touches[0].clientY;
-            const deltaX = touchX - touchStartX;
-            const deltaY = touchY - touchStartY;
-            const timeDelta = Date.now() - touchStartTime;
-            
-            // Only process if it's been a short time (quick gesture)
-            if (timeDelta < 1000) {
-                e.preventDefault(); // Prevent page scrolling
-                
-                // Detect swipe direction with lower threshold for better sensitivity
-                if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > 15) {
-                    // Vertical swipe
-                    if (deltaY < 0) {
-                        // Swipe up - behaves like scroll up
-                        handleVerticalGesture(true);
-                    } else {
-                        // Swipe down - behaves like scroll down
-                        handleVerticalGesture(false);
-                    }
-                } else if (Math.abs(deltaX) > 15) {
-                    // Horizontal swipe - prank behavior
-                    if (deltaX > 0) {
-                        volume += 3 + Math.random() * 4; // Chaotic movement
-                    } else {
-                        volume -= 3 + Math.random() * 4;
-                    }
-                    showPrankIndicator();
-                }
-                
-                volume = Math.max(0, Math.min(100, volume));
-                updateSlider();
-                
-                // Reset touch start for continuous gestures
-                touchStartX = touchX;
-                touchStartY = touchY;
-                touchStartTime = Date.now();
-            }
-        }, { passive: false });
-
-        // Also add direct touch controls on the container for easier mobile interaction
-        volumeControl.addEventListener('touchend', (e) => {
-            if (isDragging || e.target === thumb) return;
-            
-            const timeDelta = Date.now() - touchStartTime;
-            const deltaY = e.changedTouches[0].clientY - touchStartY;
-            
-            // If it was a quick tap or very short swipe, treat as volume adjustment
-            if (timeDelta < 200 || Math.abs(deltaY) < 10) {
-                const rect = volumeControl.getBoundingClientRect();
-                const x = e.changedTouches[0].clientX - rect.left;
-                const percentage = (x / rect.width) * 100;
-                volume = Math.max(0, Math.min(100, percentage));
-                updateSlider();
-            }
-        });
-
-        function handleVerticalGesture(isUp) {
-            if (isUp && !prankTriggered) {
-                volume += 8; // Increase step size for mobile
-                scrollDirection = 1;
-                
+            if (scrollUp && !prankTriggered) {
+                volume += 3;
                 if (volume > 75 && !prankCooldown) {
                     prankTriggered = true;
                     prankCooldown = true;
-                    showPrankIndicator();
-                    
-                    setTimeout(() => {
-                        prankCooldown = false;
-                    }, 3000);
+                    setTimeout(() => { prankCooldown = false; }, 3000);
+                }
+            } else if (scrollUp && prankTriggered) {
+                volume -= 5;
+            } else if (scrollDown) {
+                volume -= 3;
+                if (volume < 30) {
+                    prankTriggered = false;
+                }
+            }
+            
+            volume = Math.max(0, Math.min(100, volume));
+            updateSlider();
+        }
+
+        function handleVerticalGesture(isUp) {
+            if (isUp && !prankTriggered) {
+                volume += 8;
+                if (volume > 75 && !prankCooldown) {
+                    prankTriggered = true;
+                    prankCooldown = true;
+                    setTimeout(() => { prankCooldown = false; }, 3000);
                 }
             } else if (isUp && prankTriggered) {
-                volume -= 10; // Bigger reverse effect for mobile
-                scrollDirection = -1;
+                volume -= 10;
             } else if (!isUp) {
                 volume -= 8;
-                scrollDirection = -1;
-                
                 if (volume < 30) {
                     prankTriggered = false;
                 }
             }
         }
 
-        // Initialize
-        updateSlider();
+        function updateSlider() {
+            const percentage = Math.max(0, Math.min(100, volume));
+            document.getElementById('sliderFill').style.width = percentage + '%';
+            document.getElementById('sliderThumb').style.left = percentage + '%';
+            document.getElementById('volumePercentage').textContent = Math.round(percentage) + '%';
+        }
+
+        // Button Demo
+        function initButtonDemo() {
+            // Add touch events for mobile dodge buttons
+            document.querySelectorAll('.dodge-button').forEach(button => {
+                button.addEventListener('touchstart', function(e) {
+                    e.preventDefault();
+                    dodgeButton(this);
+                });
+            });
+        }
+
+        function dodgeButton(button) {
+            // Move button away from cursor
+            const moveDistance = 100;
+            const directions = [
+                { x: moveDistance, y: 0 },
+                { x: -moveDistance, y: 0 },
+                { x: 0, y: moveDistance },
+                { x: 0, y: -moveDistance },
+                { x: moveDistance, y: moveDistance },
+                { x: -moveDistance, y: -moveDistance }
+            ];
+            
+            const randomDirection = directions[Math.floor(Math.random() * directions.length)];
+            
+            button.style.position = 'relative';
+            button.style.transform = `translate(${randomDirection.x}px, ${randomDirection.y}px)`;
+            button.style.transition = 'transform 0.3s ease';
+            
+            document.getElementById('buttonMessage').textContent = 
+                ['Almost got it!', 'Try again!', 'So close!', 'Keep trying!', 'Missed!'][Math.floor(Math.random() * 5)];
+            
+            // Reset position after a delay
+            setTimeout(() => {
+                button.style.transform = 'translate(0px, 0px)';
+            }, 1500);
+        }
+
+        // Loading Demo
+        function startLoading() {
+            if (loadingActive) return;
+            loadingActive = true;
+            
+            const progressFill = document.getElementById('progressFill');
+            const loadingText = document.getElementById('loadingText');
+            let progress = 0;
+            let resetCount = 0;
+            
+            const messages = [
+                'Initializing systems...',
+                'Loading data structures...',
+                'Optimizing algorithms...',
+                'Connecting to servers...',
+                'Processing quantum calculations...',
+                'Almost finished...',
+                'Wait, something went wrong...',
+                'Recalculating trajectory...',
+                'Consulting the manual...',
+                'Asking AI for help...',
+                'Just kidding, starting over...'
+            ];
+            
+            function updateProgress() {
+                if (!loadingActive) return;
+                
+                progress += Math.random() * 3 + 1;
+                
+                if (progress >= 99) {
+                    progress = 0;
+                    resetCount++;
+                    loadingText.textContent = messages[resetCount % messages.length];
+                } else {
+                    loadingText.textContent = `Loading... ${Math.floor(progress)}%`;
+                }
+                
+                progressFill.style.width = progress + '%';
+                
+                setTimeout(updateProgress, 150);
+            }
+            
+            loadingText.textContent = 'Starting process...';
+            updateProgress();
+        }
+
+        // Calculator Demo
+        function calcInput(value) {
+            const display = document.getElementById('calcDisplay');
+            display.value += value;
+        }
+
+        function clearCalc() {
+            document.getElementById('calcDisplay').value = '';
+        }
+
+        function deleteLast() {
+            const display = document.getElementById('calcDisplay');
+            display.value = display.value.slice(0, -1);
+        }
+
+        function calculate() {
+            const display = document.getElementById('calcDisplay');
+            try {
+                let result = eval(display.value.replace('×', '*').replace('÷', '/'));
+                
+                // Prank: Sometimes 2+2=5
+                if (display.value === '2+2' && Math.random() < 0.5) {
+                    result = 5;
+                }
+                
+                display.value = result;
+            } catch (e) {
+                display.value = 'Error';
+            }
+        }
+
+        // Typing Demo
+        function initTypingDemo() {
+            const input = document.getElementById('textInput');
+            const output = document.getElementById('textOutput');
+            
+            // Clear previous listeners
+            input.removeEventListener('input', handleTypingInput);
+            input.addEventListener('input', handleTypingInput);
+            
+            function handleTypingInput() {
+                const text = this.value;
+                const lastChar = text[text.length - 1];
+                
+                // Add each character to queue with delay
+                typingQueue.push(lastChar || '');
+                
+                // Process queue
+                if (!typingInterval) {
+                    typingInterval = setInterval(() => {
+                        if (typingQueue.length > 0) {
+                            const char = typingQueue.shift();
+                            if (char === '') {
+                                output.textContent = output.textContent.slice(0, -1); // backspace
+                            } else {
+                                output.textContent += char;
+                            }
+                        }
+                    }, 500); // 0.5 second delay per character
+                }
+            }
+        }
+
+        // Cursor Demo
+        function initCursorDemo() {
+            const fakeCursor = document.getElementById('fakeCursor');
+            fakeCursorActive = true;
+            fakeCursor.style.display = 'block';
+            
+            // Remove previous listener
+            document.removeEventListener('mousemove', handleFakeCursor);
+            document.addEventListener('mousemove', handleFakeCursor);
+            
+            function handleFakeCursor(e) {
+                if (!fakeCursorActive) return;
+                
+                clearTimeout(fakeCursorTimeout);
+                fakeCursorTimeout = setTimeout(() => {
+                    if (fakeCursorActive) {
+                        fakeCursor.style.left = (e.clientX - 10) + 'px';
+                        fakeCursor.style.top = (e.clientY - 10) + 'px';
+                    }
+                }, 1500); // 1.5 second delay
+            }
+        }
+
+        // Gravity Demo
+        function initGravityDemo() {
+            // Initialize gravity container
+        }
+
+        function createGravityElements() {
+            const container = document.getElementById('gravityContainer');
+            container.innerHTML = '';
+            
+            for (let i = 0; i < 5; i++) {
+                const element = document.createElement('div');
+                element.className = 'gravity-element';
+                element.style.left = Math.random() * 80 + '%';
+                element.style.top = Math.random() * 50 + '%';
+                container.appendChild(element);
+            }
+        }
+
+        function activateGravity() {
+            const elements = document.querySelectorAll('.gravity-element');
+            elements.forEach(element => {
+                element.style.top = 'calc(100% - 50px)';
+            });
+        }
+
+        // Mirror Demo
+        function toggleMirror() {
+            const content = document.getElementById('mirrorContent');
+            isMirrored = !isMirrored;
+            
+            if (isMirrored) {
+                content.classList.add('mirrored');
+            } else {
+                content.classList.remove('mirrored');
+            }
+        }
+
+        // Motion Demo
+        function toggleSlowMotion() {
+            isSlowMotion = !isSlowMotion;
+            
+            if (isSlowMotion) {
+                document.body.classList.add('slow-motion');
+            } else {
+                document.body.classList.remove('slow-motion');
+            }
+        }
+
+        // Mood Demo
+        function detectMood() {
+            const moods = [
+                { name: 'Happy', class: 'mood-happy', description: 'Radiating positive energy!' },
+                { name: 'Calm', class: 'mood-calm', description: 'Peaceful and serene vibes detected' },
+                { name: 'Excited', class: 'mood-excited', description: 'High energy levels detected!' },
+                { name: 'Focused', class: 'mood-focused', description: 'Deep concentration mode active' },
+                { name: 'Mysterious', class: 'mood-mysterious', description: 'Enigmatic aura surrounding you' }
+            ];
+            
+            const randomMood = moods[Math.floor(Math.random() * moods.length)];
+            document.body.className = randomMood.class;
+            document.getElementById('moodResult').textContent = 
+                `Mood detected: ${randomMood.name} - ${randomMood.description}`;
+        }
+
+        // Crack Demo
+        document.getElementById('crackArea').addEventListener('click', function(e) {
+            const rect = this.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            const crack = document.createElement('div');
+            crack.className = 'crack';
+            crack.style.left = x + 'px';
+            crack.style.top = y + 'px';
+            crack.style.setProperty('--angle', Math.random() * 360 + 'deg');
+            
+            this.appendChild(crack);
+        });
+
+        // Time Demo
+        function initTimeDemo() {
+            const timeZones = [
+                'Mars Standard Time',
+                'Jupiter Meridian Time', 
+                'Quantum Time Zone',
+                'Interdimensional Time',
+                'Backwards Earth Time',
+                'Dream Sequence Time',
+                'Parallel Universe Clock'
+            ];
+            
+            let timeDirection = Math.random() > 0.5 ? 1 : -1;
+            let currentTime = new Date();
+            
+            window.timeInterval = setInterval(() => {
+                currentTime = new Date(currentTime.getTime() + (timeDirection * 1000));
+                
+                document.getElementById('timeDisplay').textContent = 
+                    currentTime.toLocaleTimeString();
+                document.getElementById('timeZone').textContent = 
+                    timeZones[Math.floor(Math.random() * timeZones.length)];
+            }, 1000);
+        }
+
+        // Initialize first demo
+        initializeDemo('volume');
     </script>
 </body>
 </html>
