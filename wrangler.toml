@@ -1,7 +1,7 @@
 name = "prank-volume-slider"
 main = "src/index.js"
-compatibility_date = "2025-09-04"
+compatibility_date = "2025-01-01"
 
-[[assets]]
-binding = "ASSETS"
+[assets]
 directory = "./"
+binding = "ASSETS"
